@@ -676,6 +676,9 @@ private:
 	{
 		vkWaitForFences(device, 1, &inFlightFence, VK_TRUE, UINT64_MAX);
 		vkResetFences(device, 1, &inFlightFence);
+
+		uint32_t imageIndex;
+		vkAcquireNextImageKHR(device, swapChain, std::numeric_limits<uint64_t>::max(), imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
 	}
 
 	VkShaderModule createShaderModule(const std::vector<char>& code)
