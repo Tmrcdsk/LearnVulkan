@@ -128,6 +128,7 @@ private:
 	void mainLoop() {
 		while (!glfwWindowShouldClose(window)) {
 			glfwPollEvents();
+			drawFrame();
 		}
 	}
 
@@ -644,6 +645,11 @@ private:
 		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
 			throw std::runtime_error("failed to record command buffer!");
 		}
+	}
+
+	void drawFrame()
+	{
+
 	}
 
 	VkShaderModule createShaderModule(const std::vector<char>& code)
