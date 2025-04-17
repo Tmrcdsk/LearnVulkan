@@ -674,7 +674,8 @@ private:
 
 	void drawFrame()
 	{
-
+		vkWaitForFences(device, 1, &inFlightFence, VK_TRUE, UINT64_MAX);
+		vkResetFences(device, 1, &inFlightFence);
 	}
 
 	VkShaderModule createShaderModule(const std::vector<char>& code)
