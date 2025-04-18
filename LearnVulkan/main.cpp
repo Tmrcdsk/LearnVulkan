@@ -90,7 +90,7 @@ struct Vertex
 		attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
 		attributeDescriptions[0].offset = offsetof(Vertex, pos);
 
-		attributeDescriptions[1].binding = 1;
+		attributeDescriptions[1].binding = 0; // ！！注意：这里的binding与上面一样都是 0 ！！
 		attributeDescriptions[1].location = 1;
 		attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
 		attributeDescriptions[1].offset = offsetof(Vertex, color);
@@ -796,7 +796,11 @@ private:
 			scissor.extent = swapChainExtent;
 			vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-			vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+			VkBuffer vertexBuffers[] = { vertexBuffer };
+			VkDeviceSize offsets[] = { 0 };
+			vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+
+			vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
 
 		vkCmdEndRenderPass(commandBuffer);
 
