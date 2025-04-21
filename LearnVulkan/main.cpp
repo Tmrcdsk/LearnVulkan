@@ -832,6 +832,35 @@ private:
 		vkBindImageMemory(device, textureImage, textureImageMemory, 0);
 	}
 
+	void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
+	{
+		VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+
+		VkImageMemoryBarrier barrier{};
+		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		barrier.oldLayout = oldLayout;
+		barrier.newLayout = newLayout;
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.image = image;
+		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		barrier.subresourceRange.baseMipLevel = 0;
+		barrier.subresourceRange.levelCount = 1;
+		barrier.subresourceRange.baseArrayLayer = 0;
+		barrier.subresourceRange.layerCount = 1;
+
+		vkCmdPipelineBarrier(
+			commandBuffer,
+			0 /* TODO */, 0 /* TODO */,
+			0,
+			0, nullptr,
+			0, nullptr,
+			1, &barrier
+		);
+
+		endSingleTimeCommands(commandBuffer);
+	}
+
 	void createVertexBuffer()
 	{
 		VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
@@ -966,7 +995,7 @@ private:
 		vkBindBufferMemory(device, buffer, bufferMemory, 0);
 	}
 
-	void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+	VkCommandBuffer beginSingleTimeCommands()
 	{
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -983,10 +1012,11 @@ private:
 
 		vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
-			VkBufferCopy copyRegion{};
-			copyRegion.size = size;
-			vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+		return commandBuffer;
+	}
 
+	void endSingleTimeCommands(VkCommandBuffer commandBuffer)
+	{
 		vkEndCommandBuffer(commandBuffer);
 
 		VkSubmitInfo submitInfo{};
@@ -998,6 +1028,17 @@ private:
 		vkQueueWaitIdle(graphicsQueue);
 
 		vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
+	}
+
+	void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+	{
+		VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+
+		VkBufferCopy copyRegion{};
+		copyRegion.size = size;
+		vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+		endSingleTimeCommands(commandBuffer);
 	}
 
 	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
